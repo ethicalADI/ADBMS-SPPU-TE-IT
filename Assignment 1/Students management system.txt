@@ -1,0 +1,84 @@
+
+
+use mydb
+db.createCollection("students")
+
+
+// Insert single 
+db.students.insertOne({name: "Alice",age: 25, subjects: ["Math"],});
+
+// Insert many
+db.students.insertMany([
+  {
+    name: "Aditya",
+    age: 28,
+    subjects: ["Math", "Science"],
+  },
+  {
+    name: "Bob",
+    age: 30,
+    subjects: ["History", "English"],
+  },
+]);
+
+// Insert validation - This will fail due to validation rules (name and major are required)
+db.students.insertOne({}); 
+
+// Removing documents
+db.students.deleteOne({ name: 'Alice ' });
+
+// Updating documents (document replacement)
+db.students.replaceOne({ name: 'Bob ' }, { name: 'Bob Smith', age: 23, subjects: 'Computer Science' });
+
+// Using modifiers for updating documents
+db.students.updateOne({ name: 'Bob ' }, { $set: { age: 24 } });
+
+// Upsert (update or insert if not exists)
+db.students.update({ name: 'Eve', age: 21 }, { $set: { subjects: 'Physics' } }, { upsert: true });
+
+// Updating multiple documents
+db.students.updateMany({ subjects: 'Mathematics' }, { $inc: { age: 1 } });
+
+// Returning updated documents
+const updatedDocument = db.students.findOneAndUpdate(
+  { name: 'Bob ' },
+  { $set: { age: 25 } },
+  { returnDocument: 'after' }
+);
+printjson(updatedDocument);
+
+// Cursors (Limit, skip, sort, advanced query options)
+
+const cursor = db.students.find({}).limit(2).skip(1).sort({ age: 1 });
+cursor.forEach(printjson);
+
+// Advanced Query Options
+
+const youngStudents = db.students.find({ age: { $gt: 25} });
+youngStudents.forEach(printjson);
+
+
+// Find one document by name
+db.students.findOne({ name: "Alicia" });
+
+// Find documents with age greater than 25
+db.students.find({ age: { $gt: 25 } });
+
+// OR query (students named Alice or Bob)
+db.students.find({ $or: [{ name: "Alice" }, { name: "Bob" }] });
+
+// NOT query (students not named Alice)
+db.students.find({ name: { $not: { $eq: "Alice" } } });
+
+// Query using Regular Expression (students with names starting with 'A')
+db.students.find({ name: /^A/ });
+
+// Query for documents where subjects is null
+db.students.find({ subjects: null });
+
+// Query for documents with a specific subject in their array
+db.students.find({ subjects: "Science" });
+
+// $where query (age  > 26)
+db.students.find({ $where: "this.age > 26" });
+

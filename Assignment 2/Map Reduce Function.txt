@@ -1,0 +1,37 @@
+db.createCollection("Orders");
+
+db.Orders.insertMany([
+  { Orderid: 1, custid: "CustA", date: "2023-10-25", amount: 100 },
+  { Orderid: 2, custid: "CustA", date: "2023-10-26", amount: 150 },
+  { Orderid: 3, custid: "CustB", date: "2023-10-27", amount: 200 },
+  { Orderid: 4, custid: "CustA", date: "2023-10-28", amount: 75 },
+  { Orderid: 5, custid: "CustB", date: "2023-10-29", amount: 125 },
+  { Orderid: 6, custid: "CustC", date: "2023-10-30", amount: 50 },
+]);
+
+// Map function to emit the custid and amount
+var mapFunction = function() {
+  emit(this.custid, this.amount);
+};
+
+// Reduce function to sum the amounts for each customer
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+// Run the Map-Reduce operation
+db.Orders.mapReduce( mapFunction,reduceFunction,
+  {
+    out: "TotalAmountByCustomer" // Store the result in a separate collection
+  }
+);
+
+// Create an index on the "custid" field
+db.TotalAmountByCustomer.createIndex({ _id: 1 });
+
+
+// Query the total amount for a specific customer (e.g., "CustA")
+db.TotalAmountByCustomer.find({ _id: "CustA" });
+
+// Explain the query and check if it's using the index
+db.TotalAmountByCustomer.find({ _id: "CustA" }).explain("executionStats");
